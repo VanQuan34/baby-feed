@@ -119,9 +119,11 @@ function AppsScriptLogin({ onError }: { onError: (m: string) => void }) {
       }
       try {
         const res = await api.loginClaim(nonce)
-        if (!stopped && 'token' in res) {
-          finish()
+        if (stopped) return
+        if ('token' in res) {
+          // Claim is idempotent, so if this fails we simply retry on the next tick.
           await loginWithToken(res.token)
+          finish()
           return
         }
       } catch (e) {

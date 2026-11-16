@@ -12,6 +12,11 @@ interface Session {
 
 const store = createStore<Session | null>(readJSON<Session | null>('session', null))
 
+// Keep every open tab in sync (login finished in another tab, logout elsewhere…).
+window.addEventListener('storage', (e) => {
+  if (e.key === 'session' || e.key === null) store.set(readJSON<Session | null>('session', null))
+})
+
 export function useSession() {
   return useSyncExternalStore(store.subscribe, store.get)
 }

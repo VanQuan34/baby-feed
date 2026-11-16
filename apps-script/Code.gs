@@ -220,7 +220,8 @@ function loginClaim_(nonce) {
   const cache = CacheService.getScriptCache();
   const v = cache.get('n:' + nonce);
   if (!v) return { pending: true };
-  cache.remove('n:' + nonce);
+  // Not consumed on read: several tabs/windows of the same device may poll the
+  // same (secret, 192-bit) nonce. The entry expires with the cache (10 min).
   return JSON.parse(v);
 }
 
