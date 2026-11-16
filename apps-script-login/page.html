@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top" />
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; color: #0f172a; }
+      @media (prefers-color-scheme: dark) { body { background: #020617; color: #f1f5f9; } .muted { color: #94a3b8 !important; } }
+      main { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; box-sizing: border-box; }
+      .icon { font-size: 64px; margin-bottom: 12px; }
+      h1 { font-size: 22px; margin: 0 0 8px; }
+      p { margin: 0 0 6px; line-height: 1.5; }
+      .muted { color: #64748b; font-size: 15px; }
+      .err { color: #ef4444; }
+      a.btn { display: inline-block; margin-top: 20px; padding: 14px 28px; border-radius: 16px; background: #0ea5e9; color: #fff; font-weight: 600; text-decoration: none; font-size: 16px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="icon" id="icon">🍼</div>
+      <h1 id="title">Đang đăng nhập…</h1>
+      <p class="muted" id="msg"></p>
+      <a class="btn" id="back" style="display:none">Quay lại Baby Feed</a>
+    </main>
+    <script>
+      var d = <?!= data ?>;
+      var $ = function (id) { return document.getElementById(id); };
+      function show(icon, title, msg, isErr) {
+        $('icon').textContent = icon;
+        $('title').textContent = title;
+        $('msg').textContent = msg;
+        $('msg').className = isErr ? 'muted err' : 'muted';
+        if (d.ret) { $('back').href = d.ret; $('back').style.display = 'inline-block'; }
+      }
+      if (!d.sig) {
+        show('⚠️', 'Liên kết đăng nhập không hợp lệ', 'Hãy mở lại từ ứng dụng Baby Feed.', true);
+      } else {
+        fetch(d.api, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'loginComplete', email: d.email, nonce: d.nonce, exp: d.exp, sig: d.sig, userAgent: navigator.userAgent }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res.ok) {
+              show('✅', 'Đăng nhập thành công', 'Xin chào ' + res.name + '. Bạn có thể đóng trang này và quay lại ứng dụng.');
+            } else if (res.error === 'NOT_MEMBER') {
+              show('🚫', 'Chưa có quyền truy cập', 'Email ' + d.email + ' chưa có trong danh sách gia đình. Nhờ admin thêm vào tab "members" của Google Sheet.', true);
+            } else {
+              show('⚠️', 'Đăng nhập thất bại', res.message || res.error || 'Lỗi không xác định', true);
+            }
+          })
+          .catch(function (e) { show('⚠️', 'Không kết nối được máy chủ', String(e), true); });
+      }
+    </script>
+  </body>
+</html>
