@@ -1,10 +1,14 @@
-import { describe, FEED_TYPES, META, summarize } from '../eventMeta'
-import { useEventsBetween, useLastEvent, usePrefs } from '../hooks'
-import { ago, clock, dayjs, duration, fmtTime, useNow } from '../lib/time'
-import { breastTotals, useTimers } from '../timers'
-import type { EventType, LocalEvent } from '../types'
+import { ChevronRight, Clock } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { EventRow } from '../components/EventRow'
 import type { SheetTarget } from '../components/EventSheet'
+import { BreastIcon, SleepIcon } from '../components/icons'
+import { IconBadge, SectionTitle } from '../components/ui'
+import { describe, FEED_TYPES, META, summarize } from '../eventMeta'
+import { useEventsBetween, useLastEvent, usePrefs } from '../hooks'
+import { ago, clock, dayjs, duration, durationShort, fmtTime, useNow } from '../lib/time'
+import { breastTotals, useTimers } from '../timers'
+import type { EventType, LocalEvent } from '../types'
 
 const QUICK: EventType[] = ['breast', 'bottle', 'pump', 'diaper', 'sleep']
 
@@ -15,58 +19,58 @@ export function Home({ open }: { open: (t: SheetTarget) => void }) {
   const today = useEventsBetween(start.toDate(), start.add(1, 'day').toDate()) ?? []
 
   return (
-    <div className="space-y-4">
-      {breast && (
-        <button onClick={() => open({ type: 'breast' })} className="flex w-full items-center gap-3 rounded-3xl bg-rose-500 p-4 text-left text-white shadow-lg shadow-rose-500/20">
-          <span className="text-3xl">🤱</span>
-          <span className="flex-1">
-            <span className="block text-sm opacity-90">
-              {breast.current ? `Đang bú bên ${breast.current === 'L' ? 'trái' : 'phải'}` : 'Tạm dừng'}
-            </span>
-            <span className="block text-2xl font-semibold tabular-nums">
-              {(() => {
+    <div className="animate-fade-in space-y-6">
+      {(breast || sleep) && (
+        <div className="space-y-3">
+          {breast && (
+            <ActiveCard
+              tone="peach"
+              icon={<BreastIcon size={24} />}
+              label={breast.current ? `Đang bú bên ${breast.current === 'L' ? 'trái' : 'phải'}` : 'Bú mẹ · tạm dừng'}
+              value={(() => {
                 const t = breastTotals(breast, now)
                 return clock(t.left + t.right)
               })()}
-            </span>
-          </span>
-          <span className="text-sm font-medium opacity-90">Mở ›</span>
-        </button>
-      )}
-      {sleep && (
-        <button onClick={() => open({ type: 'sleep' })} className="flex w-full items-center gap-3 rounded-3xl bg-indigo-500 p-4 text-left text-white shadow-lg shadow-indigo-500/20">
-          <span className="text-3xl">😴</span>
-          <span className="flex-1">
-            <span className="block text-sm opacity-90">Bé đang ngủ</span>
-            <span className="block text-2xl font-semibold tabular-nums">{clock(now - sleep.startedAt)}</span>
-          </span>
-          <span className="text-sm font-medium opacity-90">Mở ›</span>
-        </button>
+              live={!!breast.current}
+              onClick={() => open({ type: 'breast' })}
+            />
+          )}
+          {sleep && (
+            <ActiveCard tone="primary" icon={<SleepIcon size={24} />} label="Bé đang ngủ" value={clock(now - sleep.startedAt)} live onClick={() => open({ type: 'sleep' })} />
+          )}
+        </div>
       )}
 
       <LastFeedCard now={now} onOpen={open} />
 
       <section>
-        <h2 className="mb-2 px-1 text-sm font-semibold text-slate-500 dark:text-slate-400">Ghi nhanh</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {QUICK.map((t) => (
-            <button key={t} onClick={() => open({ type: t })}
-              className={`flex aspect-[1/0.9] flex-col items-center justify-center gap-1 rounded-3xl active:scale-95 transition ${META[t].tone}`}>
-              <span className="text-3xl">{META[t].icon}</span>
-              <span className="text-sm font-semibold">{META[t].label}</span>
-            </button>
-          ))}
+        <SectionTitle>Ghi nhanh</SectionTitle>
+        <div className="grid grid-cols-5 gap-2">
+          {QUICK.map((t) => {
+            const m = META[t]
+            return (
+              <button key={t} onClick={() => open({ type: t })} className="press flex flex-col items-center gap-2 py-1">
+                <IconBadge size="lg" className={`${m.bg} ${m.fg}`}>
+                  <m.Icon size={26} />
+                </IconBadge>
+                <span className="text-xs font-medium text-ink/80">{m.label}</span>
+              </button>
+            )
+          })}
         </div>
       </section>
 
       <TodaySummary events={today} />
 
       <section>
-        <h2 className="mb-1 px-1 text-sm font-semibold text-slate-500 dark:text-slate-400">Hôm nay</h2>
+        <SectionTitle>Hoạt động hôm nay</SectionTitle>
         {today.length === 0 ? (
-          <p className="rounded-2xl bg-white p-6 text-center text-slate-500 dark:bg-slate-900">Chưa có bản ghi nào hôm nay</p>
+          <div className="card px-6 py-10 text-center">
+            <p className="text-[15px] font-medium">Chưa có hoạt động nào</p>
+            <p className="mt-1 text-[13px] text-muted">Chạm vào một mục ở “Ghi nhanh” để bắt đầu</p>
+          </div>
         ) : (
-          <div className="rounded-3xl bg-white p-1 dark:bg-slate-900">
+          <div className="card p-1.5">
             {today.slice(0, 8).map((e) => (
               <EventRow key={e.id} e={e} onClick={() => open({ type: e.type, event: e })} />
             ))}
@@ -77,34 +81,77 @@ export function Home({ open }: { open: (t: SheetTarget) => void }) {
   )
 }
 
+function ActiveCard({ tone, icon, label, value, live, onClick }: {
+  tone: 'peach' | 'primary'; icon: ReactNode; label: string; value: string; live: boolean; onClick: () => void
+}) {
+  const c = tone === 'peach' ? { bg: 'bg-peach-soft', fg: 'text-peach-strong', dot: 'bg-peach' } : { bg: 'bg-primary-soft', fg: 'text-primary-strong', dot: 'bg-primary' }
+  return (
+    <button onClick={onClick} className={`press flex w-full items-center gap-4 rounded-3xl ${c.bg} p-4 text-left`}>
+      <IconBadge className={`bg-surface ${c.fg}`}>{icon}</IconBadge>
+      <span className="flex-1">
+        <span className="flex items-center gap-2 text-[13px] font-medium text-muted">
+          {live && (
+            <span className="relative flex h-2 w-2">
+              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${c.dot} opacity-60`} />
+              <span className={`relative inline-flex h-2 w-2 rounded-full ${c.dot}`} />
+            </span>
+          )}
+          {label}
+        </span>
+        <span className="block text-2xl font-semibold tracking-tight tabular-nums">{value}</span>
+      </span>
+      <ChevronRight size={20} className="text-muted" />
+    </button>
+  )
+}
+
 function LastFeedCard({ now, onOpen }: { now: number; onOpen: (t: SheetTarget) => void }) {
   const last = useLastEvent(FEED_TYPES)
   const { feedIntervalMin } = usePrefs()
-  if (last === undefined) return <div className="h-36 rounded-3xl bg-white dark:bg-slate-900" />
+  if (last === undefined) return <div className="h-44 animate-pulse rounded-3xl bg-cream" />
 
   if (!last) {
     return (
-      <div className="rounded-3xl bg-white p-5 dark:bg-slate-900">
-        <div className="text-sm text-slate-500">Lần ăn cuối</div>
-        <div className="mt-1 text-xl font-semibold">Chưa có dữ liệu</div>
+      <div className="rounded-3xl bg-cream p-6">
+        <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted">
+          <Clock size={14} /> Lần ăn cuối
+        </div>
+        <div className="mt-2 text-xl font-semibold tracking-tight">Chưa có dữ liệu</div>
+        <p className="mt-1 text-[13px] text-muted">Ghi cữ ăn đầu tiên để theo dõi giờ ăn của bé.</p>
       </div>
     )
   }
+  const m = META[last.type]
   const ref = last.end_at || last.start_at
   const next = dayjs(last.start_at).add(feedIntervalMin, 'minute')
   const overdueMin = Math.round((now - next.valueOf()) / 60000)
 
   return (
-    <button onClick={() => onOpen({ type: last.type, event: last })} className="block w-full rounded-3xl bg-white p-5 text-left dark:bg-slate-900">
-      <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-        <span>Lần ăn cuối</span>
-        <span>{META[last.type].icon} {META[last.type].label} · {fmtTime(last.start_at)}</span>
+    <button onClick={() => onOpen({ type: last.type, event: last })} className="press block w-full rounded-3xl bg-cream p-6 text-left">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted">
+            <Clock size={14} /> Lần ăn cuối
+          </div>
+          <div className="mt-2 text-[32px] leading-tight font-bold tracking-tight">{ago(ref, now)}</div>
+          <div className="mt-1 truncate text-[15px] text-ink/70">
+            {m.label} · {fmtTime(last.start_at)}
+            {describe(last) && ` · ${describe(last)}`}
+          </div>
+        </div>
+        <IconBadge size="lg" className={`bg-surface ${m.fg} shadow-card`}>
+          <m.Icon size={28} />
+        </IconBadge>
       </div>
-      <div className="mt-1 text-3xl font-bold tracking-tight">{ago(ref, now)}</div>
-      <div className="mt-0.5 text-slate-600 dark:text-slate-300">{describe(last)}</div>
-      <div className={`mt-3 inline-flex rounded-full px-3 py-1 text-sm font-medium ${
-        overdueMin > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200'}`}>
-        {overdueMin > 0 ? `Quá giờ cữ tiếp theo ${duration(overdueMin * 60)}` : `Cữ tiếp theo khoảng ${next.format('HH:mm')}`}
+      <div className="mt-5 flex items-center gap-2">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium ${
+            overdueMin > 0 ? 'bg-peach-soft text-peach-strong' : 'bg-success-soft text-success-strong'
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${overdueMin > 0 ? 'bg-peach' : 'bg-success'}`} />
+          {overdueMin > 0 ? `Đã quá giờ ăn ${duration(overdueMin * 60)}` : `Cữ tiếp theo khoảng ${next.format('HH:mm')}`}
+        </span>
       </div>
     </button>
   )
@@ -112,20 +159,26 @@ function LastFeedCard({ now, onOpen }: { now: number; onOpen: (t: SheetTarget) =
 
 function TodaySummary({ events }: { events: LocalEvent[] }) {
   const s = summarize(events)
-  const tiles = [
-    { label: 'Cữ ăn', value: String(s.feeds) },
-    { label: 'Sữa bình', value: `${s.ml} ml` },
-    { label: 'Tã', value: String(s.diapers) },
-    { label: 'Ngủ', value: s.sleepSec ? duration(s.sleepSec).replace(' phút', 'p').replace(' giờ', 'g') : '0' },
+  const items = [
+    { label: 'Cữ ăn', value: String(s.feeds), unit: '' },
+    { label: 'Sữa bình', value: String(s.ml), unit: 'ml' },
+    { label: 'Thay tã', value: String(s.diapers), unit: '' },
+    { label: 'Giấc ngủ', value: s.sleepSec ? durationShort(s.sleepSec) : '0', unit: '' },
   ]
   return (
-    <section className="grid grid-cols-4 gap-2">
-      {tiles.map((t) => (
-        <div key={t.label} className="rounded-2xl bg-white px-2 py-3 text-center dark:bg-slate-900">
-          <div className="truncate text-lg font-semibold tabular-nums">{t.value}</div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">{t.label}</div>
-        </div>
-      ))}
+    <section>
+      <SectionTitle>Tổng quan hôm nay</SectionTitle>
+      <div className="card grid grid-cols-4 divide-x divide-line py-4">
+        {items.map((t) => (
+          <div key={t.label} className="px-1 text-center">
+            <div className="text-xl font-semibold tracking-tight tabular-nums">
+              {t.value}
+              {t.unit && <span className="ml-0.5 text-xs font-medium text-muted">{t.unit}</span>}
+            </div>
+            <div className="mt-0.5 text-xs text-muted">{t.label}</div>
+          </div>
+        ))}
+      </div>
     </section>
   )
 }

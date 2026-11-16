@@ -1,7 +1,7 @@
+import { SectionTitle } from '../components/ui'
+import { summarize } from '../eventMeta'
 import { useEventsBetween } from '../hooks'
 import { dayjs, durationShort } from '../lib/time'
-import type { LocalEvent } from '../types'
-import { summarize } from '../eventMeta'
 
 const DAYS = 7
 
@@ -10,49 +10,65 @@ export function Stats() {
   const start = end.subtract(DAYS, 'day')
   const events = useEventsBetween(start.toDate(), end.toDate()) ?? []
 
+  // oldest → newest, left to right
   const byDay = Array.from({ length: DAYS }, (_, i) => {
-    const d = end.subtract(i + 1, 'day')
-    const list = events.filter((e: LocalEvent) => dayjs(e.start_at).isSame(d, 'day'))
-    return { d, ...summarize(list) }
+    const d = start.add(i, 'day')
+    return { d, ...summarize(events.filter((e) => dayjs(e.start_at).isSame(d, 'day'))) }
   })
-  const maxMl = Math.max(1, ...byDay.map((x) => x.ml))
   const total = summarize(events)
-  const avg = (n: number) => Math.round(n / DAYS)
+  // Average over days that actually have records, so a new log isn't diluted by empty days.
+  const activeDays = Math.max(1, byDay.filter((x) => x.feeds || x.diapers || x.sleepSec || x.ml).length)
 
   return (
-    <div className="space-y-4">
-      <section className="grid grid-cols-3 gap-2">
+    <div className="animate-fade-in space-y-6">
+      <section className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Cữ / ngày', value: String(Math.round((total.feeds / DAYS) * 10) / 10) },
-          { label: 'ml / ngày', value: String(avg(total.ml)) },
-          { label: 'Ngủ / ngày', value: durationShort(total.sleepSec / DAYS) },
+          { label: 'Cữ / ngày', value: String(Math.round((total.feeds / activeDays) * 10) / 10) },
+          { label: 'ml / ngày', value: String(Math.round(total.ml / activeDays)) },
+          { label: 'Ngủ / ngày', value: durationShort(total.sleepSec / activeDays) },
         ].map((t) => (
-          <div key={t.label} className="rounded-2xl bg-white p-3 text-center dark:bg-slate-900">
-            <div className="text-xl font-semibold tabular-nums">{t.value}</div>
-            <div className="text-xs text-slate-500">{t.label}</div>
+          <div key={t.label} className="card rounded-2xl px-2 py-4 text-center">
+            <div className="text-xl font-semibold tracking-tight tabular-nums">{t.value}</div>
+            <div className="mt-0.5 text-xs text-muted">{t.label}</div>
           </div>
         ))}
       </section>
 
-      <section className="rounded-3xl bg-white p-4 dark:bg-slate-900">
-        <h2 className="mb-3 text-sm font-semibold text-slate-500">7 ngày gần nhất</h2>
-        <ul className="space-y-3">
-          {byDay.map((x) => (
-            <li key={x.d.valueOf()}>
-              <div className="mb-1 flex justify-between text-sm">
-                <span className="capitalize">{x.d.format('dd DD/MM')}</span>
-                <span className="text-slate-500 tabular-nums">
-                  {x.feeds} cữ · {x.ml} ml · {x.diapers} tã · ngủ {durationShort(x.sleepSec)}
-                </span>
-              </div>
-              <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800">
-                <div className="h-2 rounded-full bg-sky-400" style={{ width: `${(x.ml / maxMl) * 100}%` }} />
-              </div>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-xs text-slate-500">Thanh xanh: lượng sữa bình (ml) theo ngày.</p>
-      </section>
+      <BarCard title="Sữa bình (ml)" data={byDay.map((x) => ({ d: x.d, v: x.ml, label: String(x.ml) }))} bar="bg-primary" />
+      <BarCard title="Số cữ ăn" data={byDay.map((x) => ({ d: x.d, v: x.feeds, label: String(x.feeds) }))} bar="bg-peach" />
+      <BarCard title="Giấc ngủ" data={byDay.map((x) => ({ d: x.d, v: x.sleepSec, label: x.sleepSec ? durationShort(x.sleepSec) : '0' }))} bar="bg-success" />
     </div>
+  )
+}
+
+function BarCard({ title, data, bar }: { title: string; data: { d: dayjs.Dayjs; v: number; label: string }[]; bar: string }) {
+  const max = Math.max(1, ...data.map((x) => x.v))
+  return (
+    <section>
+      <SectionTitle>{title}</SectionTitle>
+      <div className="card px-4 pt-5 pb-4">
+        <div className="flex h-36 items-end gap-2.5">
+          {data.map((x) => {
+            const today = x.d.isSame(dayjs(), 'day')
+            return (
+              <div key={x.d.valueOf()} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+                <span className={`text-[11px] tabular-nums ${today ? 'font-semibold text-ink' : 'text-muted'}`}>{x.v ? x.label : ''}</span>
+                <div
+                  className={`w-full max-w-7 rounded-lg transition-[height] duration-500 ease-out ${x.v ? bar : 'bg-fill'} ${today ? '' : 'opacity-70'}`}
+                  style={{ height: `${Math.max(4, (x.v / max) * 100)}%` }}
+                />
+              </div>
+            )
+          })}
+        </div>
+        <div className="mt-2 flex gap-2.5 border-t border-line pt-2">
+          {data.map((x) => (
+            <span key={x.d.valueOf()} className={`flex-1 text-center text-[11px] first-letter:uppercase ${x.d.isSame(dayjs(), 'day') ? 'font-semibold text-ink' : 'text-muted'}`}>
+              {x.d.format('dd')}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }

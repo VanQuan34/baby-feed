@@ -1,7 +1,149 @@
 @import "tailwindcss";
+@import "@fontsource/be-vietnam-pro/400.css";
+@import "@fontsource/be-vietnam-pro/500.css";
+@import "@fontsource/be-vietnam-pro/600.css";
+@import "@fontsource/be-vietnam-pro/700.css";
 
+/* Design tokens. Light values here; dark overrides below. */
 @theme {
-  --font-sans: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-fill: #f1f5f9;
+  --color-line: #e8edf3;
+  --color-ink: #273449;
+  --color-muted: #7b879a;
+
+  --color-primary: #8ebfe8;
+  --color-primary-strong: #4f8fc6;
+  --color-primary-soft: #eaf3fb;
+  --color-on-primary: #1d3550;
+
+  --color-cream: #fff8f0;
+  --color-peach: #f4b49c;
+  --color-peach-strong: #d27c5c;
+  --color-peach-soft: #fdeee7;
+
+  --color-success: #81c9a5;
+  --color-success-strong: #3e9a6c;
+  --color-success-soft: #e8f6ef;
+
+  --color-danger: #e06c6c;
+
+  --shadow-card: 0 1px 2px rgb(39 52 73 / 0.04), 0 6px 24px rgb(39 52 73 / 0.05);
+  --shadow-float: 0 8px 32px rgb(39 52 73 / 0.12);
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fade-in 0.25s var(--ease-soft);
+  --animate-sheet-up: sheet-up 0.32s var(--ease-soft);
+  --animate-overlay: fade-in 0.2s ease-out;
+  --animate-pop: pop 0.18s var(--ease-soft);
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+  }
+  @keyframes pop {
+    from { transform: scale(0.96); opacity: 0.6; }
+    to { transform: none; opacity: 1; }
+  }
+}
+
+@layer base {
+  :root[data-theme="dark"] {
+    --color-bg: #0f1621;
+    --color-surface: #18212f;
+    --color-fill: #212c3c;
+    --color-line: #263243;
+    --color-ink: #e8edf4;
+    --color-muted: #8c98ab;
+    --color-primary-strong: #a9d0f0;
+    --color-primary-soft: rgb(142 191 232 / 0.14);
+    --color-on-primary: #10243a;
+    --color-cream: #1f2532;
+    --color-peach-strong: #f6c2ae;
+    --color-peach-soft: rgb(244 180 156 / 0.14);
+    --color-success-strong: #9ad6b8;
+    --color-success-soft: rgb(129 201 165 / 0.14);
+    --color-danger: #f08a8a;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2);
+    --shadow-float: 0 8px 32px rgb(0 0 0 / 0.45);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-bg: #0f1621;
+      --color-surface: #18212f;
+      --color-fill: #212c3c;
+      --color-line: #263243;
+      --color-ink: #e8edf4;
+      --color-muted: #8c98ab;
+      --color-primary-strong: #a9d0f0;
+      --color-primary-soft: rgb(142 191 232 / 0.14);
+      --color-on-primary: #10243a;
+      --color-cream: #1f2532;
+      --color-peach-strong: #f6c2ae;
+      --color-peach-soft: rgb(244 180 156 / 0.14);
+      --color-success-strong: #9ad6b8;
+      --color-success-soft: rgb(129 201 165 / 0.14);
+      --color-danger: #f08a8a;
+      --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2);
+      --shadow-float: 0 8px 32px rgb(0 0 0 / 0.45);
+      color-scheme: dark;
+    }
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* prevents iOS zoom on focus */
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  input[type="datetime-local"],
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    color-scheme: inherit;
+  }
+
+  button {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @utility pt-safe {
@@ -14,38 +156,17 @@
   padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
 }
 
-html,
-body,
-#root {
-  min-height: 100%;
+/* Shared surfaces */
+@utility card {
+  background: var(--color-surface);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-card);
 }
-
-body {
-  @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-input,
-textarea,
-select {
-  font-size: 16px; /* prevents iOS zoom on focus */
-  -webkit-user-select: text;
-  user-select: text;
-}
-
-button {
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-@keyframes up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-@keyframes fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@utility press {
+  transition-property: transform, color, background-color, box-shadow, opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: var(--ease-soft);
+  &:active {
+    transform: scale(0.97);
+  }
 }

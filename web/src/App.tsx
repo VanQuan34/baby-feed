@@ -1,7 +1,9 @@
+import { CalendarDays, ChartColumn, House, Settings as SettingsIcon, type LucideIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { refreshMe, useSession } from './auth'
 import { EventSheet, type SheetTarget } from './components/EventSheet'
 import { useBaby, usePendingCount } from './hooks'
+import { ageText, greeting } from './lib/time'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
 import { Settings } from './pages/Settings'
@@ -11,11 +13,11 @@ import { startAutoSync, useSyncStatus } from './sync'
 
 type Tab = 'home' | 'timeline' | 'stats' | 'settings'
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'home', label: 'Trang chủ', icon: '🏠' },
-  { id: 'timeline', label: 'Nhật ký', icon: '📋' },
-  { id: 'stats', label: 'Thống kê', icon: '📊' },
-  { id: 'settings', label: 'Cài đặt', icon: '⚙️' },
+const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
+  { id: 'home', label: 'Trang chủ', Icon: House },
+  { id: 'timeline', label: 'Nhật ký', Icon: CalendarDays },
+  { id: 'stats', label: 'Thống kê', Icon: ChartColumn },
+  { id: 'settings', label: 'Cài đặt', Icon: SettingsIcon },
 ]
 
 export default function App() {
@@ -27,7 +29,6 @@ export default function App() {
 function Main() {
   const [tab, setTab] = useState<Tab>('home')
   const [sheet, setSheet] = useState<SheetTarget | null>(null)
-  const baby = useBaby()
   const close = useCallback(() => setSheet(null), [])
 
   useEffect(() => {
@@ -37,28 +38,33 @@ function Main() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg">
-      <header className="sticky top-0 z-20 flex h-[calc(env(safe-area-inset-top)+3.5rem)] items-end justify-between bg-slate-50/90 px-4 pb-2 pt-safe backdrop-blur dark:bg-slate-950/90">
-        <h1 className="text-xl font-bold">{tab === 'home' ? baby?.name || 'Baby Feed' : TABS.find((t) => t.id === tab)!.label}</h1>
-        <SyncBadge />
-      </header>
+      <Header tab={tab} />
 
-      <main className="px-4 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-2">
+      <main key={tab} className="px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+6.5rem)]">
         {tab === 'home' && <Home open={setSheet} />}
         {tab === 'timeline' && <Timeline open={setSheet} />}
         {tab === 'stats' && <Stats />}
         {tab === 'settings' && <Settings />}
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 pb-safe backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-        <div className="mx-auto grid max-w-lg grid-cols-4">
-          {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex h-16 flex-col items-center justify-center gap-0.5 text-xs font-medium ${tab === t.id ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500'}`}
-              aria-current={tab === t.id ? 'page' : undefined}>
-              <span className={`text-xl ${tab === t.id ? '' : 'opacity-60 grayscale'}`}>{t.icon}</span>
-              {t.label}
-            </button>
-          ))}
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line/70 bg-surface/85 pb-safe backdrop-blur-xl">
+        <div className="mx-auto grid max-w-lg grid-cols-4 px-2">
+          {TABS.map(({ id, label, Icon }) => {
+            const active = tab === id
+            return (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                aria-current={active ? 'page' : undefined}
+                className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors ${active ? 'text-primary-strong' : 'text-muted'}`}
+              >
+                <span className={`flex h-8 w-14 items-center justify-center rounded-full transition-all duration-300 ${active ? 'bg-primary-soft' : ''}`}>
+                  <Icon size={22} strokeWidth={active ? 2.1 : 1.75} />
+                </span>
+                {label}
+              </button>
+            )
+          })}
         </div>
       </nav>
 
@@ -67,19 +73,42 @@ function Main() {
   )
 }
 
+function Header({ tab }: { tab: Tab }) {
+  const baby = useBaby()
+  const title = TABS.find((t) => t.id === tab)!.label
+  return (
+    <header className="sticky top-0 z-20 bg-bg/85 px-5 pt-safe backdrop-blur-xl">
+      <div className="flex h-[68px] items-center justify-between gap-3">
+        {tab === 'home' ? (
+          <div className="min-w-0">
+            <div className="text-[13px] text-muted">{greeting()}</div>
+            <h1 className="truncate text-[22px] font-bold tracking-tight">
+              {baby?.name || 'Baby Feed'}
+              {baby?.birth_date && <span className="ml-2 text-[15px] font-medium text-muted">{ageText(baby.birth_date)}</span>}
+            </h1>
+          </div>
+        ) : (
+          <h1 className="text-[22px] font-bold tracking-tight">{title}</h1>
+        )}
+        <SyncBadge />
+      </div>
+    </header>
+  )
+}
+
 function SyncBadge() {
   const s = useSyncStatus()
   const pending = usePendingCount()
   const map = {
-    idle: pending ? ['bg-amber-400', `${pending} chờ`] : ['bg-emerald-400', 'Đã lưu'],
-    syncing: ['bg-sky-400 animate-pulse', 'Đang lưu'],
-    offline: ['bg-slate-400', 'Offline'],
-    error: ['bg-red-400', 'Lỗi'],
+    idle: pending ? ['bg-peach', `${pending} chờ lưu`] : ['bg-success', 'Đã lưu'],
+    syncing: ['bg-primary animate-pulse', 'Đang lưu'],
+    offline: ['bg-muted', 'Offline'],
+    error: ['bg-danger', 'Lỗi'],
   } as const
   const [dot, label] = map[s.state]
   return (
-    <span className="mb-1 flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs text-slate-500 shadow-sm dark:bg-slate-900" title={s.error}>
-      <span className={`h-2 w-2 rounded-full ${dot}`} />
+    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-medium text-muted shadow-card" title={s.error}>
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
       {label}
     </span>
   )

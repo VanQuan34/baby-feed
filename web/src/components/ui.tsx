@@ -1,13 +1,16 @@
+import { Minus, Plus, X } from 'lucide-react'
 import { useEffect, type ButtonHTMLAttributes, type ReactNode } from 'react'
 
 export function BottomSheet({
   open,
   title,
+  icon,
   onClose,
   children,
 }: {
   open: boolean
   title: string
+  icon?: ReactNode
   onClose: () => void
   children: ReactNode
 }) {
@@ -25,13 +28,14 @@ export function BottomSheet({
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
-      <button aria-label="Đóng" className="absolute inset-0 bg-black/40 animate-[fade_.15s_ease-out]" onClick={onClose} />
-      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-3xl bg-white dark:bg-slate-900 px-4 pt-3 pb-safe-4 shadow-2xl animate-[up_.2s_ease-out]">
-        <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-700" />
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="h-10 w-10 -mr-2 rounded-full text-2xl leading-none text-slate-500 active:bg-slate-100 dark:active:bg-slate-800" aria-label="Đóng">
-            ×
+      <button aria-label="Đóng" className="absolute inset-0 animate-overlay bg-[#1b2433]/35 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="relative max-h-[92dvh] w-full max-w-lg animate-sheet-up overflow-y-auto rounded-t-[28px] bg-surface px-5 pt-2.5 pb-safe-4 shadow-float">
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-line" />
+        <div className="mb-5 flex items-center gap-3">
+          {icon}
+          <h2 className="flex-1 text-lg font-semibold tracking-tight">{title}</h2>
+          <button onClick={onClose} className="press -mr-1 flex h-9 w-9 items-center justify-center rounded-full bg-fill text-muted" aria-label="Đóng">
+            <X size={18} strokeWidth={2} />
           </button>
         </div>
         {children}
@@ -40,17 +44,22 @@ export function BottomSheet({
   )
 }
 
+export function IconBadge({ children, className = '', size = 'md' }: { children: ReactNode; className?: string; size?: 'sm' | 'md' | 'lg' }) {
+  const s = size === 'lg' ? 'h-14 w-14 rounded-[18px]' : size === 'sm' ? 'h-9 w-9 rounded-xl' : 'h-11 w-11 rounded-2xl'
+  return <span className={`flex shrink-0 items-center justify-center ${s} ${className}`}>{children}</span>
+}
+
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="mb-4 block">
-      <span className="mb-1.5 block text-sm font-medium text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="mb-1.5 block text-[13px] font-medium text-muted">{label}</span>
       {children}
     </label>
   )
 }
 
 export const inputCls =
-  'w-full h-12 rounded-xl border border-slate-200 bg-white px-3 text-base outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 dark:border-slate-700 dark:bg-slate-800'
+  'w-full h-12 rounded-2xl border border-transparent bg-fill px-4 text-base text-ink outline-none transition placeholder:text-muted/70 focus:border-primary focus:bg-surface focus:ring-4 focus:ring-primary/20'
 
 export function Segmented<T extends string>({
   value,
@@ -58,18 +67,18 @@ export function Segmented<T extends string>({
   onChange,
 }: {
   value: T
-  options: { value: T; label: string }[]
+  options: { value: T; label: ReactNode }[]
   onChange: (v: T) => void
 }) {
   return (
-    <div className="grid gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
+    <div className="grid gap-1 rounded-2xl bg-fill p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={`h-10 rounded-lg text-sm font-medium transition ${
-            value === o.value ? 'bg-white shadow-sm dark:bg-slate-600' : 'text-slate-500 dark:text-slate-400'
+          className={`flex h-10 items-center justify-center gap-1.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+            value === o.value ? 'bg-surface text-ink shadow-card' : 'text-muted'
           }`}
         >
           {o.label}
@@ -80,23 +89,26 @@ export function Segmented<T extends string>({
 }
 
 export function Stepper({ value, onChange, step = 10, unit }: { value: number; onChange: (v: number) => void; step?: number; unit: string }) {
+  const btn = 'press flex h-14 w-14 items-center justify-center rounded-full bg-fill text-ink'
   return (
     <div className="flex items-center gap-3">
-      <button type="button" onClick={() => onChange(Math.max(0, value - step))} className="h-14 w-14 rounded-2xl bg-slate-100 text-2xl active:scale-95 dark:bg-slate-800">
-        −
+      <button type="button" aria-label="Giảm" onClick={() => onChange(Math.max(0, value - step))} className={btn}>
+        <Minus size={22} />
       </button>
-      <div className="flex-1 text-center">
+      <div className="flex flex-1 items-baseline justify-center gap-1">
         <input
           inputMode="numeric"
+          aria-label={unit}
           value={value || ''}
           placeholder="0"
           onChange={(e) => onChange(Number(e.target.value.replace(/\D/g, '')) || 0)}
-          className="w-24 bg-transparent text-center text-4xl font-semibold tabular-nums outline-none"
+          style={{ width: `${Math.max(1, String(value || 0).length) * 0.62 + 0.2}em` }}
+          className="bg-transparent text-right text-[44px] leading-none font-semibold tracking-tight tabular-nums outline-none placeholder:text-line"
         />
-        <span className="ml-1 text-slate-500">{unit}</span>
+        <span className="text-base font-medium text-muted">{unit}</span>
       </div>
-      <button type="button" onClick={() => onChange(value + step)} className="h-14 w-14 rounded-2xl bg-slate-100 text-2xl active:scale-95 dark:bg-slate-800">
-        +
+      <button type="button" aria-label="Tăng" onClick={() => onChange(value + step)} className={btn}>
+        <Plus size={22} />
       </button>
     </div>
   )
@@ -106,7 +118,7 @@ export function PrimaryButton({ children, className = '', ...props }: ButtonHTML
   return (
     <button
       {...props}
-      className={`h-14 w-full rounded-2xl bg-sky-500 text-base font-semibold text-white active:scale-[.98] disabled:opacity-50 dark:bg-sky-600 ${className}`}
+      className={`press flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-on-primary disabled:opacity-50 ${className}`}
     >
       {children}
     </button>
@@ -115,8 +127,17 @@ export function PrimaryButton({ children, className = '', ...props }: ButtonHTML
 
 export function GhostButton({ children, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...props} className={`h-12 w-full rounded-2xl text-base font-medium active:bg-slate-100 dark:active:bg-slate-800 ${className}`}>
+    <button {...props} className={`press flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-medium ${className}`}>
       {children}
     </button>
+  )
+}
+
+export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  return (
+    <div className="mb-2.5 flex items-center justify-between px-1">
+      <h2 className="text-[15px] font-semibold tracking-tight">{children}</h2>
+      {action}
+    </div>
   )
 }

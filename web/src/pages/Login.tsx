@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, AuthError, GOOGLE_CLIENT_ID, LOGIN_URL, MOCK_MODE } from '../api'
 import { loginWithIdToken, loginWithToken } from '../auth'
+import { AppMark } from '../components/icons'
 import { GhostButton, PrimaryButton } from '../components/ui'
 
 const POLL_MS = 2000
@@ -24,9 +25,11 @@ export function Login() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-8 pt-safe pb-safe text-center">
-      <div className="mb-4 text-7xl">🍼</div>
-      <h1 className="text-3xl font-bold">Baby Feed</h1>
-      <p className="mt-2 mb-10 text-slate-500">Nhật ký ăn, ngủ, thay tã của bé cho cả nhà</p>
+      <div className="animate-pop mb-6 rounded-[26px] shadow-float">
+        <AppMark size={84} />
+      </div>
+      <h1 className="text-[28px] font-bold tracking-tight">Baby Feed</h1>
+      <p className="mt-2 mb-12 max-w-[260px] text-[15px] leading-relaxed text-muted">Theo dõi giờ ăn, giấc ngủ và thay tã của bé, cùng cả gia đình.</p>
 
       <div className="w-full max-w-xs">
         {MOCK_MODE ? (
@@ -41,18 +44,18 @@ export function Login() {
             >
               Vào chế độ demo
             </PrimaryButton>
-            <p className="mt-3 text-xs text-slate-500">Chưa cấu hình VITE_APPS_SCRIPT_URL, dữ liệu chỉ lưu trên máy này.</p>
+            <p className="mt-3 text-xs text-muted">Chưa cấu hình VITE_APPS_SCRIPT_URL, dữ liệu chỉ lưu trên máy này.</p>
           </>
         ) : LOGIN_URL ? (
           <AppsScriptLogin onError={setError} />
         ) : GOOGLE_CLIENT_ID ? (
           <GsiLogin onError={setError} busy={busy} setBusy={setBusy} />
         ) : (
-          <p className="text-red-500">Thiếu VITE_LOGIN_URL (hoặc VITE_GOOGLE_CLIENT_ID) trong file .env</p>
+          <p className="text-danger">Thiếu VITE_LOGIN_URL (hoặc VITE_GOOGLE_CLIENT_ID) trong file .env</p>
         )}
       </div>
 
-      {error && <p className="mt-4 max-w-xs text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-5 max-w-xs rounded-2xl bg-peach-soft px-4 py-3 text-sm text-peach-strong">{error}</p>}
     </div>
   )
 }
@@ -152,7 +155,7 @@ function AppsScriptLogin({ onError }: { onError: (m: string) => void }) {
     return (
       <button
         onClick={start}
-        className="flex h-14 w-full items-center justify-center gap-3 rounded-full border border-slate-300 bg-white text-base font-semibold text-slate-800 shadow-sm active:scale-[.98] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        className="press flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-surface text-base font-semibold text-ink shadow-card ring-1 ring-line"
       >
         <GoogleG />
         Đăng nhập với Google
@@ -162,15 +165,15 @@ function AppsScriptLogin({ onError }: { onError: (m: string) => void }) {
 
   return (
     <div>
-      <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
+      <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-[3px] border-primary-soft border-t-primary" />
       <p className="font-medium">Đang chờ đăng nhập…</p>
-      <p className="mt-1 text-sm text-slate-500">Hoàn tất đăng nhập Google ở trang vừa mở, rồi quay lại đây.</p>
+      <p className="mt-1 text-sm text-muted">Hoàn tất đăng nhập Google ở trang vừa mở, rồi quay lại đây.</p>
       <div className="mt-6 space-y-2">
-        <GhostButton className="bg-slate-100 dark:bg-slate-800" onClick={() => open(nonce)}>
+        <GhostButton className="bg-fill" onClick={() => open(nonce)}>
           Mở lại trang đăng nhập
         </GhostButton>
         <GhostButton
-          className="text-slate-500"
+          className="text-muted"
           onClick={() => {
             try {
               sessionStorage.removeItem('loginNonce')

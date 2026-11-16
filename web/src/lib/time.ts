@@ -62,3 +62,22 @@ export function dayLabel(d: dayjs.Dayjs) {
   if (d.isSame(today.subtract(1, 'day'), 'day')) return 'Hôm qua'
   return d.format('dddd, DD/MM')
 }
+
+export function ageText(birth: string) {
+  if (!birth) return ''
+  const b = dayjs(birth)
+  const days = dayjs().startOf('day').diff(b, 'day')
+  if (days < 0) return ''
+  if (days < 60) return `${Math.floor(days / 7)} tuần ${days % 7} ngày`
+  const months = dayjs().diff(b, 'month')
+  if (months < 24) return `${months} tháng`
+  return `${Math.floor(months / 12)} tuổi ${months % 12} tháng`
+}
+
+export function greeting() {
+  const h = new Date().getHours()
+  if (h < 11) return 'Chào buổi sáng'
+  if (h < 14) return 'Chào buổi trưa'
+  if (h < 18) return 'Chào buổi chiều'
+  return 'Chào buổi tối'
+}

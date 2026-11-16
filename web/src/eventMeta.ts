@@ -1,12 +1,20 @@
-import type { BabyEvent, EventType } from './types'
+import type { ComponentType, SVGProps } from 'react'
+import { BottleIcon, BreastIcon, DiaperIcon, PumpIcon, SleepIcon } from './components/icons'
 import { duration } from './lib/time'
+import type { BabyEvent, EventType } from './types'
 
-export const META: Record<EventType, { label: string; icon: string; tone: string; dot: string }> = {
-  breast: { label: 'Bú mẹ', icon: '🤱', tone: 'bg-rose-100 text-rose-900 dark:bg-rose-500/15 dark:text-rose-100', dot: 'bg-rose-400' },
-  bottle: { label: 'Bình sữa', icon: '🍼', tone: 'bg-sky-100 text-sky-900 dark:bg-sky-500/15 dark:text-sky-100', dot: 'bg-sky-400' },
-  pump: { label: 'Hút sữa', icon: '🥛', tone: 'bg-violet-100 text-violet-900 dark:bg-violet-500/15 dark:text-violet-100', dot: 'bg-violet-400' },
-  diaper: { label: 'Thay tã', icon: '🧷', tone: 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100', dot: 'bg-amber-400' },
-  sleep: { label: 'Ngủ', icon: '😴', tone: 'bg-indigo-100 text-indigo-900 dark:bg-indigo-500/15 dark:text-indigo-100', dot: 'bg-indigo-400' },
+type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>
+
+/**
+ * Three accent families only (blue / peach / green) + neutral, to keep the palette calm.
+ * fg = icon/text on tint, bg = soft tint, solid = filled accent.
+ */
+export const META: Record<EventType, { label: string; Icon: Icon; fg: string; bg: string; solid: string }> = {
+  breast: { label: 'Bú mẹ', Icon: BreastIcon, fg: 'text-peach-strong', bg: 'bg-peach-soft', solid: 'bg-peach' },
+  bottle: { label: 'Bình sữa', Icon: BottleIcon, fg: 'text-primary-strong', bg: 'bg-primary-soft', solid: 'bg-primary' },
+  pump: { label: 'Hút sữa', Icon: PumpIcon, fg: 'text-peach-strong', bg: 'bg-peach-soft', solid: 'bg-peach' },
+  diaper: { label: 'Thay tã', Icon: DiaperIcon, fg: 'text-success-strong', bg: 'bg-success-soft', solid: 'bg-success' },
+  sleep: { label: 'Ngủ', Icon: SleepIcon, fg: 'text-primary-strong', bg: 'bg-primary-soft', solid: 'bg-primary' },
 }
 
 export const FEED_TYPES: EventType[] = ['breast', 'bottle']
@@ -23,14 +31,14 @@ export function describe(e: BabyEvent): string {
   switch (e.type) {
     case 'breast': {
       const parts: string[] = []
-      if (e.left_sec) parts.push(`T ${duration(e.left_sec)}`)
-      if (e.right_sec) parts.push(`P ${duration(e.right_sec)}`)
+      if (e.left_sec) parts.push(`Trái ${duration(e.left_sec)}`)
+      if (e.right_sec) parts.push(`Phải ${duration(e.right_sec)}`)
       if (!parts.length && e.end_at) parts.push(duration(eventSeconds(e)))
       if (!parts.length && e.side) parts.push(SIDE[e.side])
       return parts.join(' · ')
     }
     case 'bottle':
-      return [e.amount_ml ? `${e.amount_ml} ml` : '', e.milk_type === 'formula' ? 'Sữa CT' : e.milk_type === 'breast' ? 'Sữa mẹ' : '']
+      return [e.amount_ml ? `${e.amount_ml} ml` : '', e.milk_type === 'formula' ? 'Sữa công thức' : e.milk_type === 'breast' ? 'Sữa mẹ' : '']
         .filter(Boolean)
         .join(' · ')
     case 'pump':
@@ -52,4 +60,3 @@ export function summarize(events: BabyEvent[]) {
   }
   return { feeds, ml, diapers, sleepSec, breastSec }
 }
-
