@@ -30,7 +30,12 @@
         $('title').textContent = title;
         $('msg').textContent = msg;
         $('msg').className = isErr ? 'muted err' : 'muted';
-        if (d.ret) { $('back').href = d.ret; $('back').style.display = 'inline-block'; }
+        if (d.ret) {
+          // Carry the nonce in the link so the tab that opens it can finish the login by itself
+          // (Safari does not keep the original tab's sessionStorage here).
+          $('back').href = d.ret.split('#')[0] + (isErr ? '' : '#login=' + d.nonce);
+          $('back').style.display = 'inline-block';
+        }
       }
       if (!d.sig) {
         show('⚠️', 'Liên kết đăng nhập không hợp lệ', 'Hãy mở lại từ ứng dụng Baby Feed.', true);

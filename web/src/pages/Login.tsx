@@ -5,6 +5,23 @@ import { AppMark } from '../components/icons'
 import { GhostButton, PrimaryButton } from '../components/ui'
 
 const POLL_MS = 2000
+const NONCE_RE = /^[a-f0-9]{32,128}$/
+
+/**
+ * "Quay lại Baby Feed" on the login page links to …/#login=<nonce>.
+ * Read it once at startup (before render) and clean the URL.
+ */
+const hashNonce = (() => {
+  const m = location.hash.match(/(?:^#|&)login=([a-f0-9]+)/)
+  if (!m || !NONCE_RE.test(m[1])) return null
+  history.replaceState(null, '', location.pathname + location.search)
+  try {
+    sessionStorage.setItem('loginNonce', m[1])
+  } catch {
+    /* private mode: kept in memory below */
+  }
+  return m[1]
+})()
 const POLL_TIMEOUT_MS = 10 * 60 * 1000
 
 function newNonce() {
@@ -65,6 +82,7 @@ export function Login() {
 function AppsScriptLogin({ onError }: { onError: (m: string) => void }) {
   // Resume polling if we navigated away in the same tab (popup blocked) and came back.
   const [nonce, setNonce] = useState<string | null>(() => {
+    if (hashNonce) return hashNonce
     try {
       return sessionStorage.getItem('loginNonce')
     } catch {
@@ -145,7 +163,7 @@ function AppsScriptLogin({ onError }: { onError: (m: string) => void }) {
       }
     }
     document.addEventListener('visibilitychange', onVisible)
-    timer = setTimeout(poll, POLL_MS)
+    timer = setTimeout(poll, 0)
     return () => {
       stopped = true
       clearTimeout(timer)
