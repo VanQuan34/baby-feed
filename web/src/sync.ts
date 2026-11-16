@@ -38,6 +38,8 @@ const EMPTY: Omit<BabyEvent, 'id' | 'type' | 'baby_id' | 'start_at'> = {
   created_at: '',
   updated_at: '',
   deleted: false,
+  weight_g: null,
+  height_mm: null,
 }
 
 export type EventDraft = Partial<BabyEvent> & Pick<BabyEvent, 'type' | 'start_at' | 'baby_id'>

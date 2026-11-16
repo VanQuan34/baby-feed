@@ -1,9 +1,11 @@
-import { CalendarDays, ChartColumn, House, Settings as SettingsIcon, type LucideIcon } from 'lucide-react'
+import { CalendarDays, ChartColumn, House, Settings as SettingsIcon, TrendingUp, type LucideIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { refreshMe, useSession } from './auth'
 import { EventSheet, type SheetTarget } from './components/EventSheet'
 import { useBaby, usePendingCount } from './hooks'
 import { ageText, greeting } from './lib/time'
+import { GrowthSheet, type GrowthTarget } from './growth/GrowthSheet'
+import { Growth } from './pages/Growth'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
 import { Settings } from './pages/Settings'
@@ -11,11 +13,12 @@ import { Stats } from './pages/Stats'
 import { Timeline } from './pages/Timeline'
 import { startAutoSync, useSyncStatus } from './sync'
 
-type Tab = 'home' | 'timeline' | 'stats' | 'settings'
+type Tab = 'home' | 'timeline' | 'growth' | 'stats' | 'settings'
 
 const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
   { id: 'home', label: 'Trang chủ', Icon: House },
   { id: 'timeline', label: 'Nhật ký', Icon: CalendarDays },
+  { id: 'growth', label: 'Tăng trưởng', Icon: TrendingUp },
   { id: 'stats', label: 'Thống kê', Icon: ChartColumn },
   { id: 'settings', label: 'Cài đặt', Icon: SettingsIcon },
 ]
@@ -29,7 +32,10 @@ export default function App() {
 function Main() {
   const [tab, setTab] = useState<Tab>('home')
   const [sheet, setSheet] = useState<SheetTarget | null>(null)
+  const [growthSheet, setGrowthSheet] = useState<GrowthTarget | null>(null)
   const close = useCallback(() => setSheet(null), [])
+  // Growth entries (e.g. tapped in the timeline) use their own form.
+  const open = useCallback((t: SheetTarget) => (t.type === 'growth' ? setGrowthSheet({ event: t.event }) : setSheet(t)), [])
 
   useEffect(() => {
     refreshMe().catch(() => {})
@@ -41,14 +47,15 @@ function Main() {
       <Header tab={tab} />
 
       <main key={tab} className="px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+6.5rem)]">
-        {tab === 'home' && <Home open={setSheet} />}
-        {tab === 'timeline' && <Timeline open={setSheet} />}
+        {tab === 'home' && <Home open={open} />}
+        {tab === 'timeline' && <Timeline open={open} />}
+        {tab === 'growth' && <Growth goSettings={() => setTab('settings')} />}
         {tab === 'stats' && <Stats />}
         {tab === 'settings' && <Settings />}
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line/70 bg-surface/85 pb-safe backdrop-blur-xl">
-        <div className="mx-auto grid max-w-lg grid-cols-4 px-2">
+        <div className="mx-auto grid max-w-lg grid-cols-5 px-1">
           {TABS.map(({ id, label, Icon }) => {
             const active = tab === id
             return (
@@ -58,7 +65,7 @@ function Main() {
                 aria-current={active ? 'page' : undefined}
                 className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors ${active ? 'text-primary-strong' : 'text-muted'}`}
               >
-                <span className={`flex h-8 w-14 items-center justify-center rounded-full transition-all duration-300 ${active ? 'bg-primary-soft' : ''}`}>
+                <span className={`flex h-8 w-12 items-center justify-center rounded-full transition-all duration-300 ${active ? 'bg-primary-soft' : ''}`}>
                   <Icon size={22} strokeWidth={active ? 2.1 : 1.75} />
                 </span>
                 {label}
@@ -69,6 +76,7 @@ function Main() {
       </nav>
 
       <EventSheet target={sheet} onClose={close} />
+      <GrowthSheet target={growthSheet} onClose={() => setGrowthSheet(null)} />
     </div>
   )
 }

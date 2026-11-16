@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from 'react'
-import { BottleIcon, BreastIcon, DiaperIcon, PumpIcon, SleepIcon } from './components/icons'
+import { BottleIcon, BreastIcon, DiaperIcon, GrowthIcon, PumpIcon, SleepIcon } from './components/icons'
 import { duration } from './lib/time'
 import type { BabyEvent, EventType } from './types'
 
@@ -15,6 +15,7 @@ export const META: Record<EventType, { label: string; Icon: Icon; fg: string; bg
   pump: { label: 'Hút sữa', Icon: PumpIcon, fg: 'text-peach-strong', bg: 'bg-peach-soft', solid: 'bg-peach' },
   diaper: { label: 'Thay tã', Icon: DiaperIcon, fg: 'text-success-strong', bg: 'bg-success-soft', solid: 'bg-success' },
   sleep: { label: 'Ngủ', Icon: SleepIcon, fg: 'text-primary-strong', bg: 'bg-primary-soft', solid: 'bg-primary' },
+  growth: { label: 'Cân đo', Icon: GrowthIcon, fg: 'text-success-strong', bg: 'bg-success-soft', solid: 'bg-success' },
 }
 
 export const FEED_TYPES: EventType[] = ['breast', 'bottle']
@@ -47,6 +48,10 @@ export function describe(e: BabyEvent): string {
       return DIAPER[e.diaper]
     case 'sleep':
       return e.end_at ? duration(eventSeconds(e)) : 'Đang ngủ'
+    case 'growth':
+      return [e.weight_g ? `${(e.weight_g / 1000).toFixed(2)} kg` : '', e.height_mm ? `${(e.height_mm / 10).toFixed(1)} cm` : '']
+        .filter(Boolean)
+        .join(' · ')
   }
 }
 

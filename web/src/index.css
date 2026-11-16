@@ -31,6 +31,10 @@
 
   --color-danger: #e06c6c;
 
+  /* Chart marks (validated: lightness band, chroma, CVD, contrast) */
+  --color-chart-ref: #4f8fc6;
+  --color-chart-baby: #d27c5c;
+
   --shadow-card: 0 1px 2px rgb(39 52 73 / 0.04), 0 6px 24px rgb(39 52 73 / 0.05);
   --shadow-float: 0 8px 32px rgb(39 52 73 / 0.12);
 
@@ -71,6 +75,8 @@
     --color-success-strong: #9ad6b8;
     --color-success-soft: rgb(129 201 165 / 0.14);
     --color-danger: #f08a8a;
+    --color-chart-ref: #4f97d6;
+    --color-chart-baby: #cc7656;
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2);
     --shadow-float: 0 8px 32px rgb(0 0 0 / 0.45);
     color-scheme: dark;
@@ -92,6 +98,8 @@
       --color-success-strong: #9ad6b8;
       --color-success-soft: rgb(129 201 165 / 0.14);
       --color-danger: #f08a8a;
+    --color-chart-ref: #4f97d6;
+    --color-chart-baby: #cc7656;
       --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2);
       --shadow-float: 0 8px 32px rgb(0 0 0 / 0.45);
       color-scheme: dark;

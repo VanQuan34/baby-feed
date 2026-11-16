@@ -100,6 +100,13 @@ Mã lỗi: `UNAUTHORIZED`, `INVALID_TOKEN`, `NOT_MEMBER`, `FORBIDDEN`, `BAD_REQU
 - [x] Hiển thị ai đã ghi ("bởi …"), trạng thái đồng bộ.
 - [x] Chế độ demo khi chưa cấu hình Apps Script.
 
+### Tăng trưởng ✅ (đã code)
+
+- [x] Nhập cân nặng (chiều dài nếu có) theo ngày, lưu thành sự kiện `growth` (cột `weight_g`, `height_mm`)
+- [x] Z-score / percentile theo chuẩn WHO 2006 (LMS 0–24 tháng, `web/src/growth/whoData.ts`), có hiệu chỉnh khi |z| > 3
+- [x] Biểu đồ percentile P3–P97, lịch sử theo tuần/tháng, tốc độ tăng cân so với trung vị WHO
+- [x] Đánh giá + gợi ý: phân loại WHO, tụt/vượt đường percentile, giai đoạn sơ sinh, cữ ăn, ml/kg/ngày, tã ướt
+
 ### Giai đoạn 3
 
 - [ ] Timer dùng chung giữa các máy: lưu sự kiện đang chạy với `end_at` rỗng.
@@ -110,7 +117,6 @@ Mã lỗi: `UNAUTHORIZED`, `INVALID_TOKEN`, `NOT_MEMBER`, `FORBIDDEN`, `BAD_REQU
 ### Giai đoạn 4
 
 - [ ] Nhắc cữ tiếp theo bằng Web Push. iOS 16.4+ hỗ trợ khi app đã cài lên màn hình chính; cần thêm time-based trigger trong Apps Script.
-- [ ] Theo dõi cân nặng/chiều cao (tab `growth`), biểu đồ percentile WHO.
 - [ ] Xuất CSV/PDF gửi bác sĩ.
 
 ## 6. Giới hạn đã biết

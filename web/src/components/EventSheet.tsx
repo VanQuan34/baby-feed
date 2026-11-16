@@ -288,14 +288,14 @@ function EventForm({ target, onDone }: { target: SheetTarget; onDone: () => void
       )}
 
       {t === 'bottle' && (
-        <Field label="Loại sữa">
+        <Field label="Loại sữa" group>
           <Segmented value={d.milk_type || 'breast'} onChange={(v) => up({ milk_type: v })}
             options={[{ value: 'breast', label: 'Sữa mẹ' }, { value: 'formula', label: 'Sữa công thức' }]} />
         </Field>
       )}
 
       {t === 'pump' && (
-        <Field label="Bên">
+        <Field label="Bên" group>
           <Segmented<Side> value={d.side || 'both'} onChange={(v) => up({ side: v })}
             options={[{ value: 'L', label: 'Trái' }, { value: 'R', label: 'Phải' }, { value: 'both', label: 'Hai bên' }]} />
         </Field>

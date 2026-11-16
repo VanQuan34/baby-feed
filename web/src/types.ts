@@ -1,4 +1,4 @@
-export type EventType = 'breast' | 'bottle' | 'pump' | 'diaper' | 'sleep'
+export type EventType = 'breast' | 'bottle' | 'pump' | 'diaper' | 'sleep' | 'growth'
 export type Side = '' | 'L' | 'R' | 'both'
 export type MilkType = '' | 'breast' | 'formula'
 export type DiaperKind = '' | 'wet' | 'dirty' | 'both'
@@ -22,6 +22,9 @@ export interface BabyEvent {
   created_at: string
   updated_at: string
   deleted: boolean
+  /** growth: weight in grams / length in millimetres (integers) */
+  weight_g?: number | null
+  height_mm?: number | null
 }
 
 /** Local (IndexedDB) copy, with sync bookkeeping. */

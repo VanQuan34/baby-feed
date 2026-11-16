@@ -71,3 +71,11 @@ export function setPrefs(p: Partial<Prefs>) {
   writeJSON('prefs', next)
   prefs.set(next)
 }
+
+export function useGrowthEvents() {
+  const babyId = useBabyId()
+  return useLiveQuery(
+    () => db.events.where('type').equals('growth').filter((e) => !e.deleted && e.baby_id === babyId).toArray(),
+    [babyId],
+  )
+}

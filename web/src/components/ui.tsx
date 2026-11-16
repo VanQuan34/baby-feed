@@ -49,10 +49,20 @@ export function IconBadge({ children, className = '', size = 'md' }: { children:
   return <span className={`flex shrink-0 items-center justify-center ${s} ${className}`}>{children}</span>
 }
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
+/** Labelled form row. Use `group` for button groups (Segmented): a <label> must wrap a single control. */
+export function Field({ label, children, group = false }: { label: string; children: ReactNode; group?: boolean }) {
+  const title = <span className="mb-1.5 block text-[13px] font-medium text-muted">{label}</span>
+  if (group) {
+    return (
+      <div className="mb-4" role="group" aria-label={label}>
+        {title}
+        {children}
+      </div>
+    )
+  }
   return (
     <label className="mb-4 block">
-      <span className="mb-1.5 block text-[13px] font-medium text-muted">{label}</span>
+      {title}
       {children}
     </label>
   )

@@ -149,7 +149,7 @@ function BabyCard({ canEdit }: { canEdit: boolean }) {
       <Field label="Ngày sinh">
         <input type="date" className={inputCls} value={form.birth_date} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} />
       </Field>
-      <Field label="Giới tính">
+      <Field label="Giới tính" group>
         <Segmented value={form.gender || 'boy'} onChange={(v) => setForm({ ...form, gender: v })}
           options={[{ value: 'boy', label: 'Bé trai' }, { value: 'girl', label: 'Bé gái' }]} />
       </Field>
@@ -159,7 +159,7 @@ function BabyCard({ canEdit }: { canEdit: boolean }) {
           if (!session) return
           setSaving(true)
           try {
-            const res = await api.saveBaby(session.token, { ...form, name: form.name.trim() })
+            const res = await api.saveBaby(session.token, { ...form, name: form.name.trim(), gender: form.gender || 'boy' })
             setBabies(res.babies)
             setEditing(false)
           } catch (e) {

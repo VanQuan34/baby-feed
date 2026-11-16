@@ -17,6 +17,7 @@ const SHEETS = {
     'id', 'baby_id', 'type', 'start_at', 'end_at', 'side', 'left_sec', 'right_sec',
     'amount_ml', 'milk_type', 'diaper', 'note',
     'created_by', 'updated_by', 'created_at', 'updated_at', 'deleted',
+    'weight_g', 'height_mm',
   ],
   babies: ['id', 'name', 'birth_date', 'gender', 'updated_at'],
   members: ['email', 'display_name', 'role', 'active'],
@@ -30,11 +31,14 @@ const TEXT_COLUMNS = {
   sessions: ['token_hash', 'created_at', 'expires_at'],
 };
 
-const EVENT_TYPES = ['breast', 'bottle', 'pump', 'diaper', 'sleep'];
+const EVENT_TYPES = ['breast', 'bottle', 'pump', 'diaper', 'sleep', 'growth'];
 const CLIENT_FIELDS = [
   'id', 'baby_id', 'type', 'start_at', 'end_at', 'side', 'left_sec', 'right_sec',
   'amount_ml', 'milk_type', 'diaper', 'note', 'created_at', 'deleted',
+  'weight_g', 'height_mm',
 ];
+// Bump when SHEETS headers change: the next request rewrites the header rows.
+const SETUP_VERSION = '2';
 const SESSION_DAYS = 30;
 const SESSION_CACHE_SEC = 300;
 // Pull window overlap, covers writes committed while a list was being read.
@@ -51,7 +55,7 @@ function setup() {
 
 function ensureSetup_(force) {
   const props = PropertiesService.getScriptProperties();
-  if (!force && props.getProperty('SETUP_VERSION') === '1') return;
+  if (!force && props.getProperty('SETUP_VERSION') === SETUP_VERSION) return;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   Object.keys(SHEETS).forEach(function (name) {
     const headers = SHEETS[name];
@@ -75,7 +79,7 @@ function ensureSetup_(force) {
     const owner = Session.getEffectiveUser().getEmail();
     if (owner) members.appendRow([owner.toLowerCase(), 'Admin', 'admin', true]);
   }
-  props.setProperty('SETUP_VERSION', '1');
+  props.setProperty('SETUP_VERSION', SETUP_VERSION);
 }
 
 function getClientId_() {
@@ -395,6 +399,8 @@ function sanitizeEvent_(e) {
     note: str(e.note, 500),
     created_at: str(e.created_at, 40),
     deleted: e.deleted === true,
+    weight_g: num(e.weight_g),
+    height_mm: num(e.height_mm),
   };
 }
 
@@ -418,6 +424,8 @@ function normalizeEvent_(e) {
     created_at: isoOf_(e.created_at),
     updated_at: isoOf_(e.updated_at),
     deleted: isTrue_(e.deleted),
+    weight_g: num(e.weight_g),
+    height_mm: num(e.height_mm),
   };
 }
 

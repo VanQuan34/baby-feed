@@ -81,6 +81,18 @@ export function SleepIcon(p: P) {
   )
 }
 
+/** Growth: baby scale. */
+export function GrowthIcon(p: P) {
+  return (
+    <Svg {...p}>
+      <path d="M4 10h16l-1.6 8.2A2.2 2.2 0 0 1 16.2 20H7.8a2.2 2.2 0 0 1-2.2-1.8z" />
+      <path d="M12 10V7" />
+      <circle cx="12" cy="5" r="2" />
+      <path d="M9.5 14.5h5" />
+    </Svg>
+  )
+}
+
 /** App mark: bottle inside a soft rounded square (used on login). */
 export function AppMark({ size = 72 }: { size?: number }) {
   return (
